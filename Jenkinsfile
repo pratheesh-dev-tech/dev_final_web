@@ -5,10 +5,6 @@ pipeline {
         AWS_DEFAULT_REGION = 'us-east-1'
     }
 
-    tools {
-        terraform 'terraform'  // Make sure this matches the name configured in Jenkins Global Tool Configuration
-    }
-
     stages {
         stage('Checkout Code') {
             steps {
@@ -19,6 +15,7 @@ pipeline {
 
         stage('Terraform Init') {
             steps {
+                sh 'terraform -v'  // Check if Terraform is installed
                 sh 'terraform init'
             }
         }
@@ -27,7 +24,7 @@ pipeline {
             steps {
                 withCredentials([[
                     $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-creds', // Use your Jenkins AWS credentials ID
+                    credentialsId: 'aws-creds', // Update if your Jenkins credential ID differs
                     accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                     secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                 ]]) {
