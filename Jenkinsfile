@@ -2,12 +2,12 @@ pipeline {
   agent any
 
   environment {
-    AWS_ACCESS_KEY_ID     = credentials('aws-access-key')  // Jenkins credentials ID
-    AWS_SECRET_ACCESS_KEY = credentials('aws-secret-key')
+    AWS_ACCESS_KEY_ID     = credentials('aws-access')  // Jenkins credentials ID
+    AWS_SECRET_ACCESS_KEY = credentials('aws-access')
   }
 
   stages {
-    stage('Clone Repository') {
+    stage('Clone Repo') {
       steps {
         git 'https://github.com/your-username/your-repo.git'
       }
@@ -25,7 +25,7 @@ pipeline {
       }
     }
 
-    stage('Deploy Application') {
+    stage('Deploy Static Website') {
       steps {
         sh './deploy.sh'
       }
