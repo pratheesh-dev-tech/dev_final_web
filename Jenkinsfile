@@ -9,7 +9,7 @@ pipeline {
         AWS_ACCESS_KEY_ID = credentials('aws-access-key')      // Add in Jenkins Credentials
         AWS_SECRET_ACCESS_KEY = credentials('aws-secret-key')  // Add in Jenkins Credentials
         AWS_DEFAULT_REGION = 'ap-south-1'                      // Change region if needed
-        S3_BUCKET = 'your-s3-bucket-name'                      // Replace with your bucket
+        S3_BUCKET = 'goblinpk123'                      // Replace with your bucket
     }
 
     stages {
