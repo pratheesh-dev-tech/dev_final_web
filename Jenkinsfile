@@ -12,21 +12,23 @@ pipeline {
     agent any
 
     stages {
-        stage('checkout') {
+        stage('Checkout') {
             steps {
-                script {
-                    dir("terraform") {
-                        git url: 'https://github.com/pratheesh-dev-tech/dev_final_web.git', branch: 'main'
-                    }
-                }
+                checkout([$class: 'GitSCM', branches: [[name: '*/main']],
+                    userRemoteConfigs: [[url: 'https://github.com/pratheesh-dev-tech/dev_final_web.git']]
+                ])
             }
         }
 
-        stage('Plan') {
+        stage('Terraform Init & Plan') {
             steps {
-                sh 'cd terraform && terraform init'
-                sh 'cd terraform && terraform plan -out=tfplan'
-                sh 'cd terraform && terraform show -no-color tfplan > tfplan.txt'
+                dir('terraform') {
+                    sh '''
+                        terraform init
+                        terraform plan -out=tfplan
+                        terraform show -no-color tfplan > tfplan.txt
+                    '''
+                }
             }
         }
 
@@ -38,17 +40,20 @@ pipeline {
             }
             steps {
                 script {
-                    def plan = readFile 'terraform/tfplan.txt'
-                    input message: "Do you want to apply the plan?",
-                        parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
+                    def planContent = readFile 'terraform/tfplan.txt'
+                    input message: 'Do you want to apply the plan?',
+                          parameters: [text(name: 'Terraform Plan', description: 'Review the plan below:', defaultValue: planContent)]
                 }
             }
         }
 
-        stage('Apply') {
+        stage('Terraform Apply') {
             steps {
-                sh 'cd terraform && terraform apply -input=false tfplan'
+                dir('terraform') {
+                    sh 'terraform apply -input=false tfplan'
+                }
             }
         }
     }
+
 }
