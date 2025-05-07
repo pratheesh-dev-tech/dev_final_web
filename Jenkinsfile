@@ -1,43 +1,54 @@
 pipeline {
-    agent any
 
-    tools {
-        terraform 'terraform'  // This name must match the one in Jenkins Global Tool Config
-    }
-
+    parameters {
+        booleanParam(name: 'autoApprove', defaultValue: false, description: 'Automatically run apply after generating plan?')
+    } 
     environment {
-        AWS_ACCESS_KEY_ID = credentials('aws-access-key')      // Add in Jenkins Credentials
-        AWS_SECRET_ACCESS_KEY = credentials('aws-secret-key')  // Add in Jenkins Credentials
-        AWS_DEFAULT_REGION = 'ap-south-1'                      // Change region if needed
-        S3_BUCKET = 'goblinpk123'                      // Replace with your bucket
+        AWS_ACCESS_KEY_ID     = credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
     }
 
+   agent  any
     stages {
-        stage('Checkout Code') {
+        stage('checkout') {
             steps {
-                git url: 'https://github.com/pratheesh-dev-tech/dev_final_web.git', branch: 'main'
-            }
-        }
-
-        stage('Terraform Init') {
-            steps {
-                sh 'terraform -v'
-                sh 'terraform init'
-            }
-        }
-
-        stage('Terraform Apply') {
-            steps {
-                sh 'terraform apply -auto-approve'
-            }
-        }
-
-        stage('Deploy Static Website to S3') {
-            steps {
-                dir('static') { // Change this if your website files are in another folder
-                    sh 'aws s3 sync . s3://$S3_BUCKET --delete'
+                 script{
+                        dir("terraform")
+                        {
+                            git "https://github.com/yeshwanthlm/Terraform-Jenkins.git"
+                        }
+                    }
                 }
             }
+
+        stage('Plan') {
+            steps {
+                sh 'pwd;cd terraform/ ; terraform init'
+                sh "pwd;cd terraform/ ; terraform plan -out tfplan"
+                sh 'pwd;cd terraform/ ; terraform show -no-color tfplan > tfplan.txt'
+            }
+        }
+        stage('Approval') {
+           when {
+               not {
+                   equals expected: true, actual: params.autoApprove
+               }
+           }
+
+           steps {
+               script {
+                    def plan = readFile 'terraform/tfplan.txt'
+                    input message: "Do you want to apply the plan?",
+                    parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
+               }
+           }
+       }
+
+        stage('Apply') {
+            steps {
+                sh "pwd;cd terraform/ ; terraform apply -input=false tfplan"
+            }
         }
     }
-}
+
+  }
