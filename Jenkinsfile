@@ -15,7 +15,7 @@ pipeline {
                  script{
                         dir("terraform")
                         {
-                            git "https://github.com/pratheesh-dev-tech/dev_final_web.git"
+                            git "https://github.com/pratheesh-dev-tech/dev_final_web.git",branch: 'main'
                         }
                     }
                 }
